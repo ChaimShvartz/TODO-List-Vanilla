@@ -4,20 +4,31 @@ const generateElement = (tagName: string, options: {} = {}) => {
     return Object.assign(document.createElement(tagName), options);
 };
 
-const handleRemoveTodo = (e: MouseEvent) => {
-    const todo = e.target as HTMLElement;
-    if (!todo.closest("button")) return;
+const handleRemoveTodo = (todo: HTMLElement, id: string) => {
     const todoElement = todo.closest("li");
-    localStorage.setItem(
-        "todos",
-        JSON.stringify(todos.filter((t) => t.id !== todoElement?.id)),
-    );
+    todos = todos.filter((t) => t.id !== id);
+    localStorage.setItem("todos", JSON.stringify(todos));
     todoElement?.remove();
+};
+
+const handleToggleIsDone = (id: string) => {
+    const tarTodo = todos.find((t) => t.id === id);
+    if (!tarTodo) return;
+    tarTodo.isDone = !tarTodo.isDone;
+    localStorage.setItem("todos", JSON.stringify(todos));
+};
+
+const handleClick = (e: MouseEvent) => {
+    const todoElement = e.target as HTMLElement;
+    const id = todoElement.closest("li")?.dataset.id as string;
+    if (todoElement.closest("input[type='checkbox']")) handleToggleIsDone(id);
+    if (todoElement.closest("button")) handleRemoveTodo(todoElement, id);
 };
 
 const renderTodo = (todo: Todo) => {
     const { id, title, isDone } = todo;
-    const articleElement = generateElement("li", { "data-id": id });
+    const articleElement = generateElement("li");
+    articleElement.dataset.id = id;
     const titleElement = generateElement("h2", { textContent: title });
     const isDoneElement = generateElement("input", {
         type: "checkbox",
@@ -60,17 +71,17 @@ const handleAddTodo = (e: SubmitEvent) => {
     const todo = { id, title: titleInputElement.value, isDone: false };
     todos.push(todo);
     localStorage.setItem("todos", JSON.stringify(todos));
-    rootElement?.appendChild(renderTodo(todo));
+    listTodosElement?.appendChild(renderTodo(todo));
     formElement.reset();
     titleInputElement.focus();
 };
 
 const todosText = localStorage.getItem("todos") || "[]";
-const todos: Todo[] = JSON.parse(todosText);
+let todos: Todo[] = JSON.parse(todosText);
 
 const rootElement = document.getElementById("app");
 rootElement?.appendChild(generateForm());
 const listTodosElement = generateElement("ul");
-listTodosElement.addEventListener("click", handleRemoveTodo);
+listTodosElement.addEventListener("click", handleClick);
 listTodosElement.append(...todos.map(renderTodo));
 rootElement?.appendChild(listTodosElement);

@@ -294,3 +294,7 @@ code {
     border-right-color: var(--border);
   }
 }
+
+li{
+  list-style: no;
+}
