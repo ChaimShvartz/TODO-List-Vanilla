@@ -4,8 +4,7 @@ const generateElement = (tagName: string, options: {} = {}) => {
     return Object.assign(document.createElement(tagName), options);
 };
 
-const handleRemoveTodo = (todo: HTMLElement, id: string) => {
-    const todoElement = todo.closest("li");
+const handleRemoveTodo = (todoElement: HTMLElement, id: string) => {
     todos = todos.filter((t) => t.id !== id);
     localStorage.setItem("todos", JSON.stringify(todos));
     todoElement?.remove();
@@ -18,18 +17,49 @@ const handleToggleIsDone = (id: string) => {
     localStorage.setItem("todos", JSON.stringify(todos));
 };
 
+const openEditPopup = (id: string) => {
+    const tarTodo = todos.find((t) => t.id === id);
+    if (!tarTodo) return;
+    const popupElement = document.getElementById(
+        "edit-popup",
+    ) as HTMLDialogElement;
+    const formElement = document.getElementById("edit-form") as HTMLFormElement;
+    const inputElement = document.getElementById(
+        "edit-input",
+    ) as HTMLInputElement;
+    formElement.onsubmit = (e) => {
+        e.preventDefault();
+        const { value } = inputElement;
+        todos = todos.map((t) => (t.id !== id ? t : { ...t, title: value }));
+        localStorage.setItem("todos", JSON.stringify(todos));
+        const titleElement = document.getElementById(
+            `title-todo-${id}`,
+        ) as HTMLElement;
+        titleElement.textContent = value;
+        popupElement.close();
+    };
+    inputElement.value = tarTodo?.title;
+    popupElement.showModal();
+};
+
 const handleClick = (e: MouseEvent) => {
-    const todoElement = e.target as HTMLElement;
-    const id = todoElement.closest("li")?.dataset.id as string;
-    if (todoElement.closest("input[type='checkbox']")) handleToggleIsDone(id);
-    if (todoElement.closest("button")) handleRemoveTodo(todoElement, id);
+    const element = e.target as HTMLElement;
+    const todoElement = element.closest("li");
+    if (!todoElement) return;
+    const id = todoElement.dataset.id as string;
+    if (element.closest("input[type='checkbox']")) handleToggleIsDone(id);
+    if (element.closest("button")) handleRemoveTodo(todoElement, id);
+    if (element.closest("h2")) openEditPopup(id);
 };
 
 const renderTodo = (todo: Todo) => {
     const { id, title, isDone } = todo;
     const articleElement = generateElement("li");
     articleElement.dataset.id = id;
-    const titleElement = generateElement("h2", { textContent: title });
+    const titleElement = generateElement("h2", {
+        id: `title-todo-${id}`,
+        textContent: title,
+    });
     const isDoneElement = generateElement("input", {
         type: "checkbox",
         checked: isDone,
@@ -78,6 +108,7 @@ const handleAddTodo = (e: SubmitEvent) => {
 
 const todosText = localStorage.getItem("todos") || "[]";
 let todos: Todo[] = JSON.parse(todosText);
+todos = todos.sort((a) => +a.isDone - 1);
 
 const rootElement = document.getElementById("app");
 rootElement?.appendChild(generateForm());
