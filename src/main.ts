@@ -63,12 +63,16 @@ const renderTodo = (todo: Todo) => {
         id: `title-todo-${id}`,
         textContent: title,
     });
+    const labelIsDoneElement = generateElement("label", {
+        textContent: "Done",
+    });
     const isDoneElement = generateElement("input", {
         type: "checkbox",
         checked: isDone,
     });
+    labelIsDoneElement.appendChild(isDoneElement);
     const removeTodoBtn = generateElement("button", { textContent: "Remove" });
-    articleElement.append(isDoneElement, titleElement, removeTodoBtn);
+    articleElement.append(labelIsDoneElement, titleElement, removeTodoBtn);
     return articleElement;
 };
 
