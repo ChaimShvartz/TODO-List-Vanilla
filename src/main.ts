@@ -10,10 +10,11 @@ const handleRemoveTodo = (todoElement: HTMLElement, id: string) => {
     todoElement?.remove();
 };
 
-const handleToggleIsDone = (id: string) => {
+const handleToggleIsDone = (todoElement: HTMLElement, id: string) => {
     const tarTodo = todos.find((t) => t.id === id);
     if (!tarTodo) return;
     tarTodo.isDone = !tarTodo.isDone;
+    todoElement.classList.toggle("done");
     localStorage.setItem("todos", JSON.stringify(todos));
 };
 
@@ -47,7 +48,8 @@ const handleClick = (e: MouseEvent) => {
     const todoElement = element.closest("li");
     if (!todoElement) return;
     const id = todoElement.dataset.id as string;
-    if (element.closest("input[type='checkbox']")) handleToggleIsDone(id);
+    if (element.closest("input[type='checkbox']"))
+        handleToggleIsDone(todoElement, id);
     if (element.closest("button")) handleRemoveTodo(todoElement, id);
     if (element.closest("h2")) openEditPopup(id);
 };
@@ -55,6 +57,7 @@ const handleClick = (e: MouseEvent) => {
 const renderTodo = (todo: Todo) => {
     const { id, title, isDone } = todo;
     const articleElement = generateElement("li");
+    if (isDone) articleElement.classList.add("done");
     articleElement.dataset.id = id;
     const titleElement = generateElement("h2", {
         id: `title-todo-${id}`,
@@ -106,6 +109,31 @@ const handleAddTodo = (e: SubmitEvent) => {
     titleInputElement.focus();
 };
 
+const generateRemoveBtns = () => {
+    const containerBtns = generateElement("div");
+    const removeAllBtn = generateElement("button", {
+        type: "button",
+        textContent: "Remove all",
+        onclick: () => {
+            localStorage.removeItem("todos");
+            listTodosElement.textContent = "";
+        },
+    });
+    const removeDoneTodosBtn = generateElement("button", {
+        type: "button",
+        textContent: "Remove done TODOs",
+        onclick: () => {
+            todos = todos.filter((t) => !t.isDone);
+            localStorage.setItem("todos", JSON.stringify(todos));
+            Array.from(document.getElementsByClassName("done")).forEach((e) =>
+                e.remove(),
+            );
+        },
+    });
+    containerBtns.append(removeDoneTodosBtn, removeAllBtn);
+    return containerBtns;
+};
+
 const todosText = localStorage.getItem("todos") || "[]";
 let todos: Todo[] = JSON.parse(todosText);
 todos = todos.sort((a) => +a.isDone - 1);
@@ -113,6 +141,8 @@ todos = todos.sort((a) => +a.isDone - 1);
 const rootElement = document.getElementById("app");
 rootElement?.appendChild(generateForm());
 const listTodosElement = generateElement("ul");
+const removeBtns = generateRemoveBtns();
+rootElement?.appendChild(removeBtns);
 listTodosElement.addEventListener("click", handleClick);
 listTodosElement.append(...todos.map(renderTodo));
 rootElement?.appendChild(listTodosElement);
