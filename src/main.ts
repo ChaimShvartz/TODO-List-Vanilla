@@ -21,14 +21,22 @@ const handleToggleIsDone = (todoElement: HTMLElement, id: string) => {
 const openEditPopup = (id: string) => {
     const tarTodo = todos.find((t) => t.id === id);
     if (!tarTodo) return;
-    const popupElement = document.getElementById(
-        "edit-popup",
-    ) as HTMLDialogElement;
-    const formElement = document.getElementById("edit-form") as HTMLFormElement;
-    const inputElement = document.getElementById(
-        "edit-input",
-    ) as HTMLInputElement;
-    formElement.onsubmit = (e) => {
+    const popUpElement = generateElement("dialog") as HTMLDialogElement;
+    const editTodoFormElement = generateElement("form");
+    const labelElement = generateElement("label", {
+        textContent: "Enter the title: ",
+    });
+    const inputElement = generateElement("input", {
+        type: "text",
+        value: tarTodo.title,
+    }) as HTMLInputElement;
+    const submitBtnElement = generateElement("button", {
+        type: "submit",
+        textContent: "Submit",
+    });
+    editTodoFormElement.append(labelElement, inputElement, submitBtnElement);
+    popUpElement.appendChild(editTodoFormElement);
+    editTodoFormElement.onsubmit = (e) => {
         e.preventDefault();
         const { value } = inputElement;
         todos = todos.map((t) => (t.id !== id ? t : { ...t, title: value }));
@@ -37,10 +45,15 @@ const openEditPopup = (id: string) => {
             `title-todo-${id}`,
         ) as HTMLElement;
         titleElement.textContent = value;
-        popupElement.close();
+        popUpElement.close();
     };
-    inputElement.value = tarTodo?.title;
-    popupElement.showModal();
+    popUpElement.addEventListener("keydown", (e) => {
+        if(e.key !== 'Escape') return
+        popUpElement.remove();
+        popUpElement.close()
+    });
+    rootElement?.appendChild(popUpElement);
+    popUpElement.showModal();
 };
 
 const handleClick = (e: MouseEvent) => {
@@ -61,6 +74,7 @@ const renderTodo = (todo: Todo) => {
     articleElement.dataset.id = id;
     const titleElement = generateElement("h2", {
         id: `title-todo-${id}`,
+        className: "title-todo",
         textContent: title,
     });
     const labelIsDoneElement = generateElement("label", {
@@ -74,27 +88,6 @@ const renderTodo = (todo: Todo) => {
     const removeTodoBtn = generateElement("button", { textContent: "Remove" });
     articleElement.append(labelIsDoneElement, titleElement, removeTodoBtn);
     return articleElement;
-};
-
-const generateForm = () => {
-    const formElement = generateElement("form", {
-        id: "titleForm",
-        onsubmit: handleAddTodo,
-    });
-    const inputLabelElement = generateElement("label", {
-        textContent: "Enter the title:",
-    });
-    const inputElement = generateElement("input", {
-        id: "titleInput",
-    }) as HTMLInputElement;
-    inputElement.autofocus = true;
-    const submitBtnElement = generateElement("button", {
-        type: "submit",
-        textContent: "Submit",
-    });
-
-    formElement.append(inputLabelElement, inputElement, submitBtnElement);
-    return formElement;
 };
 
 const handleAddTodo = (e: SubmitEvent) => {
@@ -113,29 +106,16 @@ const handleAddTodo = (e: SubmitEvent) => {
     titleInputElement.focus();
 };
 
-const generateRemoveBtns = () => {
-    const containerBtns = generateElement("div");
-    const removeAllBtn = generateElement("button", {
-        type: "button",
-        textContent: "Remove all",
-        onclick: () => {
-            localStorage.removeItem("todos");
-            listTodosElement.textContent = "";
-        },
-    });
-    const removeDoneTodosBtn = generateElement("button", {
-        type: "button",
-        textContent: "Remove done TODOs",
-        onclick: () => {
-            todos = todos.filter((t) => !t.isDone);
-            localStorage.setItem("todos", JSON.stringify(todos));
-            Array.from(document.getElementsByClassName("done")).forEach((e) =>
-                e.remove(),
-            );
-        },
-    });
-    containerBtns.append(removeDoneTodosBtn, removeAllBtn);
-    return containerBtns;
+const handleRemoveAllTodos = () => {
+    localStorage.removeItem("todos");
+    listTodosElement.textContent = "";
+};
+const handleRemoveDoneTodos = () => {
+    todos = todos.filter((t) => !t.isDone);
+    localStorage.setItem("todos", JSON.stringify(todos));
+    Array.from(document.getElementsByClassName("done")).forEach((e) =>
+        e.remove(),
+    );
 };
 
 const todosText = localStorage.getItem("todos") || "[]";
@@ -143,10 +123,18 @@ let todos: Todo[] = JSON.parse(todosText);
 todos = todos.sort((a) => +a.isDone - 1);
 
 const rootElement = document.getElementById("app");
-rootElement?.appendChild(generateForm());
+const formElement = document.getElementById("titleForm") as HTMLElement;
+formElement.onsubmit = handleAddTodo;
+const removeAllTodosElement = document.getElementById(
+    "removeAllTodos",
+) as HTMLElement;
+const removeDoneTodosElement = document.getElementById(
+    "removeDoneTodos",
+) as HTMLElement;
+removeAllTodosElement.onclick = handleRemoveAllTodos;
+removeDoneTodosElement.onclick = handleRemoveDoneTodos;
+
 const listTodosElement = generateElement("ul");
-const removeBtns = generateRemoveBtns();
-rootElement?.appendChild(removeBtns);
 listTodosElement.addEventListener("click", handleClick);
 listTodosElement.append(...todos.map(renderTodo));
 rootElement?.appendChild(listTodosElement);

@@ -7,17 +7,18 @@
         <link rel="stylesheet" href="/src/style.css" />
     </head>
     <body>
-        <div id="app">
-            <dialog id="edit-popup">
-                <form id="edit-form">
-                    <label>
-                        Enter the title:
-                        <input id="edit-input" type="text" autofocus />
-                    </label>
-                    <button type="submit">Submit</button>
-                </form>
-            </dialog>
+        <header>
+            <form id="titleForm">
+                <label for="titleInput">Enter the title:</label>
+                <input type="text" id="titleInput" autofocus />
+                <button type="submit">Submit</button>
+            </form>
+        </header>
+        <div id="removeBtnsContainer">
+            <button id="removeAllTodos">Remove all TODOs</button>
+            <button id="removeDoneTodos">Remove done TODOs</button>
         </div>
+        <main id="app"></main>
         <script type="module" src="/src/main.ts"></script>
     </body>
 </html>

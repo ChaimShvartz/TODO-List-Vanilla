@@ -296,6 +296,11 @@ code {
     }
 }
 
+ul{
+    /* margin-top: 20px; */
+    justify-items: center;
+}
+
 li {
     list-style: none;
     display: flex;
@@ -306,3 +311,33 @@ li {
     border-bottom: 2px solid;
 }
 
+.title-todo{
+    cursor: pointer;
+}
+
+button{
+    background: none;
+    border-color: blue;
+    border-radius: 5px;
+    padding: 5px;
+}
+
+button:hover{
+    background: rgb(247, 247, 214);
+}
+
+#removeBtnsContainer{
+    margin: 20px 20px 0;
+    display: flex;
+    gap: 20px;
+}
+
+header{
+    position: sticky;
+    top: 0px;
+    background: whitesmoke;
+    width: 100%;
+    justify-items: center;
+    align-content: center;
+    height: 50px;
+}
